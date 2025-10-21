@@ -1,0 +1,17 @@
+{
+  "name": "@monorepo/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo 'Starting web app dev server (to be implemented)'",
+    "start": "echo 'Starting web app (to be implemented)'",
+    "build": "echo 'Building web app (to be implemented)'",
+    "lint": "echo 'No linter configured for web yet'",
+    "test": "echo 'No tests configured for web yet'",
+    "format": "echo 'No formatter configured for web yet'",
+    "clean": "rm -rf .next dist build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
