@@ -14,6 +14,13 @@ Thumbs.db
 node_modules
 .next
 out
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
 # Environment files
 .env
@@ -39,3 +46,47 @@ web/.next
 web/out
 web/.turbo
 web/.vercel
+# Node modules
+node_modules/
+
+# Build output
+lib/
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Next.js
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Caches
+.cache/
+.vite/
+.eslintcache
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+docker-data/
+
+# Temp
+.tmp/
+tmp/
+*.local
+
+# Databases
+*.sqlite
+prisma/*.db

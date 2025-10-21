@@ -1,0 +1,17 @@
+{
+  "name": "@monorepo/api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "echo 'Starting API dev server (to be implemented)'",
+    "start": "echo 'Starting API server (to be implemented)'",
+    "build": "echo 'Building API (to be implemented)'",
+    "lint": "echo 'No linter configured for API yet'",
+    "test": "echo 'No tests configured for API yet'",
+    "format": "echo 'No formatter configured for API yet'",
+    "clean": "rm -rf dist build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
