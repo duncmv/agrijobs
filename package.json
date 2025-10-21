@@ -1,0 +1,29 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Monorepo for web and api apps managed with npm workspaces.",
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "scripts": {
+    "build": "npm --workspaces --if-present run build",
+    "dev": "npm --workspaces --if-present run dev",
+    "start": "npm --workspaces --if-present run start",
+    "lint": "npm --workspaces --if-present run lint",
+    "test": "npm --workspaces --if-present run test",
+    "format": "npm --workspaces --if-present run format",
+    "clean": "npm --workspaces --if-present run clean",
+    "web:dev": "npm run --workspace web --if-present dev",
+    "api:dev": "npm run --workspace api --if-present dev",
+    "web:lint": "npm run --workspace web --if-present lint",
+    "api:lint": "npm run --workspace api --if-present lint",
+    "web:test": "npm run --workspace web --if-present test",
+    "api:test": "npm run --workspace api --if-present test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10"
+}
