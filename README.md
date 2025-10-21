@@ -71,6 +71,44 @@ Note: The initial scripts are placeholders so you can wire in your chosen framew
 
 See `.env.example` for shared variables used by both services (MongoDB URI, JWT secrets, URLs, etc.). Each service can read from the root `.env` or from their own per-service `.env` files.
 
+## Database Models & Seeding (API)
+
+This repo includes Mongoose models and a seed script in the API workspace to bootstrap sample data for local or staging environments.
+
+Models:
+- User (with roles: candidate, employer, admin)
+- Profile (1:1 with User)
+- EmployerOrg (organizations/employers)
+- Job (belongs to EmployerOrg; created by a User)
+- Application (User applies to Job)
+- Message (between users, optionally linked to Job/Application/Org)
+
+Indexes and relationships are defined in the schemas (email uniqueness, 2dsphere geolocation, region and skills indexes, etc.).
+
+How to run the seed script:
+1) Configure your MongoDB connection
+- Copy `.env.example` to `.env` at the repo root and set `MONGODB_URI` (and optionally `MONGODB_DB_NAME`).
+
+2) Install dependencies (from monorepo root)
+- `npm install`
+
+3) Run the seed script
+- Locally: `npm run seed -w api`
+- Staging: `npm run seed:staging -w api` (ensure your staging `MONGODB_URI` is available to the process)
+
+The seed script will:
+- Ensure indexes are in place
+- Remove any previous seed data (documents labeled `isSeedData: true`)
+- Insert sample users, profiles, organizations, jobs, applications, and messages (plus org testimonials)
+- Run simple assertions to validate that counts and key indexes (e.g., User.email unique, Job.location 2dsphere) exist
+
+Verification examples (automatically performed by the script):
+- At least 5 users, 2 profiles, 2 orgs, 3 jobs, 2 applications, and 2 messages are seeded
+- Unique index on `User.email`
+- 2dsphere index on `Job.location`
+
+Note: The seed script is idempotent with respect to seed data and will only remove/replace documents marked with `isSeedData: true`.
+
 ## Contributing
 
 Please review `CONTRIBUTING.md` for branching, commit conventions, and development workflow.
