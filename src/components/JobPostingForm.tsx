@@ -49,7 +49,8 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
             id: '',
             organizationId: selectedOrganizationId || '',
             organizationName: '',
-            enterpriseType: 'individual_farm' as EnterpriseType,
+            organizationType: 'individual_farm' as EnterpriseType,
+            enterpriseType: 'crop_farm' as EnterpriseType,
             mainEnterprises: [''],
             location: {
                 district: '',
@@ -178,12 +179,26 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
         { id: 6, title: 'Preview & Submit', icon: Eye }
     ]
 
-    const enterpriseTypes = [
+    const organizationTypes = [
         { value: 'individual_farm', label: 'Individual Farm' },
         { value: 'cooperative', label: 'Cooperative' },
         { value: 'agribusiness', label: 'Agribusiness' },
         { value: 'ngo', label: 'NGO' },
         { value: 'government', label: 'Government' },
+        { value: 'other', label: 'Other' }
+    ]
+
+    const enterpriseTypes = [
+        { value: 'crop_farm', label: 'Crop Farm' },
+        { value: 'livestock_farm', label: 'Livestock Farm' },
+        { value: 'mixed', label: 'Mixed' },
+        { value: 'apiculture', label: 'Apiculture' },
+        { value: 'horticulture', label: 'Horticulture' },
+        { value: 'aquaculture', label: 'Aquaculture' },
+        { value: 'agro_forestry', label: 'Agro Forestry' },
+        { value: 'sericulture', label: 'Sericulture' },
+        { value: 'vermiculture', label: 'Vermiculture' },
+        { value: 'entomology_based_agriculture', label: 'Entomology Based Agriculture' },
         { value: 'other', label: 'Other' }
     ]
 
@@ -317,6 +332,10 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
             // Set field errors for highlighting
             const newErrors: Record<string, string> = {}
             validationResult.missingFields.forEach(field => {
+                // Skip organization name error if an existing organization is selected
+                if (field === 'organizationName' && formData.organizationDetails.organizationId && formData.organizationDetails.organizationId !== 'new') {
+                    return // Skip this field
+                }
                 newErrors[field] = 'This field is required'
             })
             setFieldErrors(newErrors)
@@ -353,11 +372,19 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
                 paymentMode: 'Payment Mode'
             }
 
-            const missingFieldLabels = validationResult.missingFields.map(field =>
-                fieldLabels[field] || field
-            )
+            const missingFieldLabels = validationResult.missingFields
+                .filter(field => {
+                    // Skip organization name if an existing organization is selected
+                    if (field === 'organizationName' && formData.organizationDetails.organizationId && formData.organizationDetails.organizationId !== 'new') {
+                        return false
+                    }
+                    return true
+                })
+                .map(field => fieldLabels[field] || field)
 
-            alert(`Please fill in all required fields in ${validationResult.stepName}:\n\n${missingFieldLabels.join('\n')}`)
+            if (missingFieldLabels.length > 0) {
+                alert(`Please fill in all required fields in ${validationResult.stepName}:\n\n${missingFieldLabels.join('\n')}`)
+            }
             return
         }
 
@@ -372,9 +399,10 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
         const stepValidations = {
             1: {
                 stepName: 'Organization Details',
-                requiredFields: ['organizationName', 'enterpriseType', 'farmStage', 'district', 'subCounty', 'parish', 'village', 'contactPersonName', 'whatsappContact', 'email'],
+                requiredFields: ['organizationName', 'organizationType', 'enterpriseType', 'farmStage', 'district', 'subCounty', 'parish', 'village', 'contactPersonName', 'whatsappContact', 'email'],
                 fieldLabels: {
                     organizationName: 'Organization Name',
+                    organizationType: 'Organization Type',
                     enterpriseType: 'Enterprise Type',
                     farmStage: 'Farm Stage',
                     district: 'District',
@@ -435,9 +463,14 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
         }
 
         const missingFields = currentStepValidation.requiredFields.filter(field => {
+            // Skip organization name validation if an existing organization is selected
+            if (field === 'organizationName' && formData.organizationDetails.organizationId && formData.organizationDetails.organizationId !== 'new') {
+                return false // Not missing
+            }
+
             // Access nested fields properly
             let value: any
-            if (field === 'organizationName' || field === 'enterpriseType' || field === 'farmStage' || field === 'whatsappContact' || field === 'email') {
+            if (field === 'organizationName' || field === 'organizationType' || field === 'enterpriseType' || field === 'farmStage' || field === 'whatsappContact' || field === 'email') {
                 value = formData.organizationDetails[field as keyof typeof formData.organizationDetails]
             } else if (field === 'district' || field === 'subCounty' || field === 'parish' || field === 'village') {
                 value = formData.organizationDetails.location[field as keyof typeof formData.organizationDetails.location]
@@ -547,17 +580,31 @@ export function JobPostingForm({ onSubmit, selectedOrganizationId }: JobPostingF
                 </p>
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type of Enterprise *</label>
-                <select
-                    value={formData.organizationDetails.enterpriseType}
-                    onChange={(e) => updateFormData('organizationDetails', 'enterpriseType', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                    {enterpriseTypes.map(type => (
-                        <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Organization Type *</label>
+                    <select
+                        value={formData.organizationDetails.organizationType}
+                        onChange={(e) => updateFormData('organizationDetails', 'organizationType', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        {organizationTypes.map(type => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type of Enterprise *</label>
+                    <select
+                        value={formData.organizationDetails.enterpriseType}
+                        onChange={(e) => updateFormData('organizationDetails', 'enterpriseType', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        {enterpriseTypes.map(type => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div>

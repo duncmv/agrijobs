@@ -1,67 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
-import db from '@/lib/database'
+import { db, initializeDatabase } from '@/lib/database'
 
-// Get all jobs for admin review
 export async function GET(request: NextRequest) {
     try {
+        // Initialize database if needed
+        initializeDatabase()
+
         const { searchParams } = new URL(request.url)
-        const status = searchParams.get('status') || 'pending_review'
+        const filter = searchParams.get('filter') || 'pending'
+
+        let whereClause = ''
+        if (filter !== 'all') {
+            if (filter === 'pending') {
+                whereClause = "WHERE j.status = 'pending_review'"
+            } else {
+                whereClause = `WHERE j.status = '${filter}'`
+            }
+        }
 
         const jobs = db.prepare(`
             SELECT 
                 j.*,
                 o.name as organization_name,
                 o.type as organization_type,
-                u.first_name || ' ' || u.last_name as posted_by_name,
-                u.email as posted_by_email
+                od.enterprise_type,
+                od.district,
+                od.sub_county,
+                od.parish,
+                od.village,
+                od.contact_person_name,
+                od.whatsapp_contact,
+                od.email
             FROM jobs j
-            JOIN organizations o ON j.organization_id = o.id
-            JOIN users u ON j.posted_by_user_id = u.id
-            WHERE j.status = ?
+            LEFT JOIN organizations o ON j.organization_id = o.id
+            LEFT JOIN organization_details od ON j.organization_id = od.organization_id
+            ${whereClause}
             ORDER BY j.posted_at DESC
-        `).all(status) as any[]
+        `).all()
 
-        return NextResponse.json({ jobs }, { status: 200 })
+        return NextResponse.json({ jobs })
     } catch (error) {
-        console.error('Failed to fetch jobs:', error)
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+        console.error('Admin jobs fetch error:', error)
+        return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 })
     }
 }
-
-// Update job status (approve/reject)
-export async function PATCH(request: NextRequest) {
-    try {
-        const { jobId, status, adminNotes } = await request.json()
-
-        if (!jobId || !status) {
-            return NextResponse.json({ error: 'Job ID and status are required' }, { status: 400 })
-        }
-
-        if (!['approved', 'rejected'].includes(status)) {
-            return NextResponse.json({ error: 'Invalid status. Must be approved or rejected' }, { status: 400 })
-        }
-
-        const updateJob = db.prepare(`
-            UPDATE jobs 
-            SET status = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        `)
-
-        const result = updateJob.run(status, jobId)
-
-        if (result.changes === 0) {
-            return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: `Job ${status} successfully`,
-            jobId
-        }, { status: 200 })
-
-    } catch (error) {
-        console.error('Failed to update job status:', error)
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-    }
-}
-

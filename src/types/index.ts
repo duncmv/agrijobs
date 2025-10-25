@@ -55,6 +55,7 @@ export interface Employer extends User {
 export interface OrganizationDetails {
     id: string
     organizationId: string
+    organizationType: EnterpriseType
     enterpriseType: EnterpriseType
     mainEnterprises: string[] // ranked by importance
     location: {

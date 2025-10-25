@@ -9,6 +9,12 @@ export async function POST(request: NextRequest) {
 
         const jobData = await request.json()
 
+        console.log('Job posting data:', {
+            organizationId: jobData.organizationId,
+            postedByUserId: jobData.postedByUserId,
+            isNewOrg: jobData.organizationId === 'new'
+        })
+
         let organizationId = jobData.organizationId
 
         // If creating a new organization, create it first
@@ -23,7 +29,7 @@ export async function POST(request: NextRequest) {
             insertOrgStmt.run(
                 organizationId,
                 jobData.organizationDetails.organizationName || 'New Organization',
-                jobData.organizationDetails.enterpriseType || 'individual_farm',
+                jobData.organizationDetails.organizationType || 'individual_farm',
                 jobData.organizationDetails.description || null,
                 jobData.organizationDetails.website || null,
                 1
@@ -62,7 +68,11 @@ export async function POST(request: NextRequest) {
                 jobData.organizationDetails.whatsappContact || '',
                 jobData.organizationDetails.email || ''
             )
+
+            console.log('Created new organization with ID:', organizationId)
         }
+
+        console.log('Using organizationId for job:', organizationId)
 
         // Create job
         const jobId = `job-${Date.now()}`
@@ -84,7 +94,7 @@ export async function POST(request: NextRequest) {
 
         createJob.run(
             jobId,
-            jobData.organizationId,
+            organizationId,
             jobData.postedByUserId,
             jobData.jobDetails.title,
             jobData.jobDetails.totalWorkersNeeded,

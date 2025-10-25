@@ -48,20 +48,10 @@ export async function GET(request: NextRequest) {
                 j.posted_at,
                 j.expires_at,
                 j.applications_count,
-                o.name as organization_name,
                 o.type as organization_type,
-                o.description as organization_description,
-                o.website as organization_website,
                 od.district,
                 od.sub_county,
-                od.parish,
-                od.village,
-                od.farm_size_acres,
-                od.farm_stage,
-                od.contact_person_name,
-                od.contact_person_title,
-                od.whatsapp_contact,
-                od.email as org_email
+                od.enterprise_type
             FROM jobs j
             JOIN organizations o ON j.organization_id = o.id
             LEFT JOIN organization_details od ON o.id = od.organization_id
@@ -70,7 +60,7 @@ export async function GET(request: NextRequest) {
             LIMIT ? OFFSET ?
         `).all(limit, offset) as any[]
 
-        // Parse JSON fields
+        // Parse JSON fields and format enterprise type
         const processedJobs = jobs.map(job => ({
             ...job,
             language_preference: job.language_preference ? JSON.parse(job.language_preference) : [],
@@ -80,15 +70,10 @@ export async function GET(request: NextRequest) {
             nationality_preference: job.nationality_preference ? JSON.parse(job.nationality_preference) : [],
             ethnic_background_preference: job.ethnic_background_preference ? JSON.parse(job.ethnic_background_preference) : [],
             location: `${job.district}, ${job.sub_county}`,
+            enterprise_type: job.enterprise_type ? job.enterprise_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Agricultural Enterprise',
             salaryRange: {
                 min: job.salary_min_ugx,
                 max: job.salary_max_ugx
-            },
-            employer: {
-                companyName: job.organization_name,
-                location: `${job.district}, ${job.sub_county}`,
-                description: job.organization_description,
-                website: job.organization_website
             }
         }))
 

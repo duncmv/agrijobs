@@ -23,40 +23,56 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       WHERE uo.organization_id = ?
     `).all(organizationId)
 
-        return NextResponse.json({
-            organization: {
-                id: organization.id,
-                name: organization.name,
-                type: organization.type,
-                description: organization.description,
-                website: organization.website,
-                logoUrl: organization.logo_url,
-                isActive: organization.is_active,
-                createdAt: organization.created_at,
-                updatedAt: organization.updated_at
-            },
-            organizationDetails: organizationDetails ? {
-                id: organizationDetails.id,
-                organizationId: organizationDetails.organization_id,
-                enterpriseType: organizationDetails.enterprise_type,
-                mainEnterprises: JSON.parse(organizationDetails.main_enterprises),
+        // Defensive checks for organization and organizationDetails, return empty object if fields missing
+        function safeOrg(org: any) {
+            return {
+                id: org?.id ?? null,
+                name: org?.name ?? null,
+                type: org?.type ?? null,
+                description: org?.description ?? null,
+                website: org?.website ?? null,
+                logoUrl: org?.logo_url ?? null,
+                isActive: org?.is_active ?? null,
+                createdAt: org?.created_at ?? null,
+                updatedAt: org?.updated_at ?? null
+            }
+        }
+
+        function safeOrgDetails(details: any) {
+            if (!details) return null;
+            let mainEnterprises = null;
+            try {
+                mainEnterprises = details.main_enterprises ? JSON.parse(details.main_enterprises) : null;
+            } catch {
+                mainEnterprises = null;
+            }
+            return {
+                id: details?.id ?? null,
+                organizationId: details?.organization_id ?? null,
+                enterpriseType: details?.enterprise_type ?? null,
+                mainEnterprises,
                 location: {
-                    district: organizationDetails.district,
-                    subCounty: organizationDetails.sub_county,
-                    parish: organizationDetails.parish,
-                    village: organizationDetails.village
+                    district: details?.district ?? null,
+                    subCounty: details?.sub_county ?? null,
+                    parish: details?.parish ?? null,
+                    village: details?.village ?? null,
                 },
-                farmSize: organizationDetails.farm_size_acres,
-                farmStage: organizationDetails.farm_stage,
+                farmSize: details?.farm_size_acres ?? null,
+                farmStage: details?.farm_stage ?? null,
                 contactPerson: {
-                    name: organizationDetails.contact_person_name,
-                    title: organizationDetails.contact_person_title
+                    name: details?.contact_person_name ?? null,
+                    title: details?.contact_person_title ?? null
                 },
-                whatsappContact: organizationDetails.whatsapp_contact,
-                email: organizationDetails.email,
-                createdAt: organizationDetails.created_at,
-                updatedAt: organizationDetails.updated_at
-            } : null,
+                whatsappContact: details?.whatsapp_contact ?? null,
+                email: details?.email ?? null,
+                createdAt: details?.created_at ?? null,
+                updatedAt: details?.updated_at ?? null
+            }
+        }
+
+        return NextResponse.json({
+            organization: safeOrg(organization),
+            organizationDetails: safeOrgDetails(organizationDetails),
             userOrganizations
         })
     } catch (error) {
